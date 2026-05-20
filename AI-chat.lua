@@ -1,13 +1,21 @@
+-- ============================================
+-- CYBER AI CHAT V2 - DELTA EXECUTOR OPTIMIZED
+-- Loadstring: loadstring(game:HttpGet("https://raw.githubusercontent.com/datlun2k11-pixel/Hi/refs/heads/main/AI-chat.lua"))()
+-- ============================================
+
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 
+-- Delta executor: dùng gethui() nếu có, fallback về CoreGui
+local parentGui = gethui and gethui() or CoreGui
+
 -- Tự động check hàm request phù hợp với mọi loại executor
 local request_func = request or http_request or (syn and syn.request)
 if not request_func then
-    print("Executor cùi bắp k hỗ trợ HTTP Request r bro 🥀")
+    warn("Executor cùi bắp k hỗ trợ HTTP Request r bro 🥀")
     return
 end
 
@@ -16,7 +24,7 @@ local MODELS = {
     {id = "llama-3.1-8b-instant", name = "⚡ Llama 3.1 8B", desc = "Nhanh, free tier thoải mái"},
     {id = "llama-3.3-70b-versatile", name = "🧠 Llama 3.3 70B", desc = "Chất lượng cao"},
     {id = "meta-llama/llama-4-scout-17b-16e-instruct", name = "🔥 Llama 4 Scout", desc = "Model mới nhất 128k context"},
-    {id = "qwen/qwen3-32b", name = "💻 Qwen3 32B", name = "Code & đa ngôn ngữ"},
+    {id = "qwen/qwen3-32b", name = "💻 Qwen3 32B", desc = "Code & đa ngôn ngữ"},
     {id = "moonshotai/kimi-k2-instruct", name = "🌙 Kimi K2", desc = "Kimi AI đa năng"},
     {id = "openai/gpt-oss-120b", name = "🤖 GPT-OSS 120B", desc = "OpenAI open source"},
     {id = "openai/gpt-oss-20b", name = "⚡ GPT-OSS 20B", desc = "Nhẹ, nhanh, 1000 TPS"},
@@ -27,8 +35,8 @@ local CURRENT_MODEL = MODELS[1].id -- Default model
 
 -- ========== TẠO SCREEN GUI ==========
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "CyberAIChatV2"
-ScreenGui.Parent = CoreGui or Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "CyberAIChatV2_" .. tostring(math.random(1000,9999)) -- Randomize name để tránh detection
+ScreenGui.Parent = parentGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -41,6 +49,7 @@ MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
+MainFrame.Draggable = true -- Bật draggable native
 MainFrame.ClipsDescendants = true
 MainFrame.Parent = ScreenGui
 
@@ -525,6 +534,10 @@ local function sendMessage()
             local errMsg = "Lỗi kết nối r đcm ☠️ (Mã: " .. tostring(code) .. ")"
             if code == 429 then
                 errMsg = "Rate limit r bro! Đợi xíu r hỏi lại 🥀"
+            elseif code == 401 then
+                errMsg = "Auth key sai r bro! Check lại worker 💀"
+            elseif code == 500 then
+                errMsg = "Server worker đang lỗi! Thử lại sau 🥀"
             end
             addMessage("Hệ thống", errMsg)
         end
